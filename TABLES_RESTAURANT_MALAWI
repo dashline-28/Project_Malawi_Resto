@@ -1,0 +1,78 @@
+ --------CREATION DES TABLES POUR LE PROJET DE FIN D'ETUDE
+--------LES TABLES POUR LE RESTAURANT MALAWI
+
+
+CREATE TABLE Client (
+  idClient INT AUTO_INCREMENT PRIMARY KEY,
+  nomClient VARCHAR(50) NOT NULL,
+  prenomClient VARCHAR(100) NOT NULL,
+  telephone VARCHAR(20) UNIQUE,
+  adresse VARCHAR(100)
+);
+
+CREATE TABLE Utilisateur (
+  idUtilisateur INT AUTO_INCREMENT PRIMARY KEY,
+  nom VARCHAR(50) NOT NULL,
+  prenom VARCHAR(50) NOT NULL,
+  email VARCHAR(100) NOT NULL UNIQUE,
+  password VARCHAR(255) NOT NULL,
+  role ENUM('caissier','manager','livreur') NOT NULL
+);
+
+CREATE TABLE Commande (
+  idCommande INT AUTO_INCREMENT PRIMARY KEY,
+  dateCommande DATETIME NOT NULL DEFAULT NOW(),
+  montantTotal DECIMAL(10,2) NOT NULL DEFAULT 0,
+  statut ENUM('en attente','validée','annulée','livrée') NOT NULL DEFAULT 'en attente',
+  idClient INT NOT NULL,
+  idUtilisateur INT,
+  FOREIGN KEY (idClient) REFERENCES Client(idClient),
+  FOREIGN KEY (idUtilisateur) REFERENCES Utilisateur(idUtilisateur)
+);
+
+
+CREATE TABLE Produit (
+    idProduit INT AUTO_INCREMENT PRIMARY KEY,
+    nom VARCHAR(100) NOT NULL,
+    prix DECIMAL(10,2) NOT NULL,
+    typeProduit ENUM('plat', 'boisson') NOT NULL
+);
+ 
+CREATE TABLE Detail_Commande (
+  idDetail INT AUTO_INCREMENT PRIMARY KEY,
+  idCommande INT NOT NULL,
+  idProduit INT NOT NULL,
+  quantite INT NOT NULL,
+  sousTotal DECIMAL(10,2) NOT NULL DEFAULT 0,
+  FOREIGN KEY (idCommande) REFERENCES Commande(idCommande) ON DELETE CASCADE,
+  FOREIGN KEY (idProduit) REFERENCES Produit(idProduit)
+);
+
+CREATE TABLE Paiement (
+  idPaiement INT AUTO_INCREMENT PRIMARY KEY,
+  datePaiement DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  montant DECIMAL(10,2) NOT NULL,
+  modePaiement ENUM('espèces','carte','mobile') NOT NULL,
+  referenceTransaction VARCHAR(100) NULL,
+  idCommande INT NOT NULL UNIQUE,
+  FOREIGN KEY (idCommande) REFERENCES Commande(idCommande)
+);
+
+
+CREATE TABLE Livraison(
+	idLivraison INT AUTO_INCREMENT PRIMARY KEY,
+	idCommande INT NOT NULL,
+	idUtilisateur INT NOT NULL,
+	adresseLivraison VARCHAR (100),
+	statutLivraison ENUM('en attente','livrée') NOT NULL DEFAULT 'en attente',
+	dateAssignation DATETIME NOT NULL,
+	dateLivraison DATETIME NULL,
+	FOREIGN KEY (idCommande) REFERENCES Commande (idCommande) ON DELETE CASCADE,
+	FOREIGN KEY (idUtilisateur) REFERENCES Utilisateur (idUtilisateur)
+);
+
+
+
+
+
+

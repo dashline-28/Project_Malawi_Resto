@@ -1,0 +1,47 @@
+# Build outputs
+bin/
+obj/
+[Bb]uild/
+[Dd]ebug/
+[Rr]elease/
+
+# User-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+.vs/
+.idea/
+*.csproj.user
+
+# Visual Studio / .NET
+*.pdb
+*.dll
+*.cache
+*.log
+*.tmp
+*.trx
+TestResults/
+
+# Node / frontend
+node_modules/
+dist/
+.vite/
+coverage/
+
+# Environment / secrets
+.env
+.env.*
+appsettings.Development.json
+secrets.json
+user-secrets.txt
+
+# OS generated files
+Thumbs.db
+.DS_Store
+Desktop.ini
+
+# Misc
+*.bak
+*.orig
+*.rej
