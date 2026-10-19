@@ -2,7 +2,7 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 
 export default defineConfig({
-  base: "/client/",
+  base: "/",
   plugins: [react()],
   server: {
     proxy: {
@@ -10,7 +10,13 @@ export default defineConfig({
     },
   },
   build: {
-    outDir: "../wwwroot/client",
-    emptyOutDir: true,
+    outDir: "../wwwroot",
+    emptyOutDir: false,
+    rollupOptions: {
+      input: {
+        client: "client/index.html",
+        staff: "staff/index.html",
+      },
+    },
   },
 });

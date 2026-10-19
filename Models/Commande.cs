@@ -22,14 +22,10 @@ namespace Project_Malawi_Resto.Models
         // Cles etrangeres
         private int idClient;
         private int idUtilisateur;
-        private int idBoisson;
-        private int idPlat;
-
         // Proprietes de navigation (objets lies) 
         private Client client;
         private Utilisateur utilisateur;
-        private Boisson boisson;
-        private Plat plat;
+        private List<DetailCommande> details;
         #endregion
 
         #region "Constructeurs"
@@ -39,9 +35,10 @@ namespace Project_Malawi_Resto.Models
             this.dateCommande = null;
             this.montantTotal = 0;
             this.statut = "En attente";
+            this.details = new List<DetailCommande>();
         }
 
-        public Commande(int idCommande, string dateCommande, decimal montantTotal, string statut, int idClient,int idUtilisateur, int idBoisson, int idPlat)
+        public Commande(int idCommande, string dateCommande, decimal montantTotal, string statut, int idClient, int idUtilisateur)
         {
             this.idCommande = idCommande;
             this.dateCommande = dateCommande;
@@ -49,8 +46,7 @@ namespace Project_Malawi_Resto.Models
             this.statut = statut;
             this.idClient = idClient;
             this.idUtilisateur = idUtilisateur;
-            this.idBoisson = idBoisson;
-            this.idPlat = idPlat;
+            this.details = new List<DetailCommande>();
         }
         #endregion
 
@@ -94,6 +90,11 @@ namespace Project_Malawi_Resto.Models
         {
             get { return utilisateur; }
             set { utilisateur = value; }
+        }
+        public List<DetailCommande> Details
+        {
+            get { return details; }
+            set { details = value; }
         }
         #endregion
 
@@ -298,7 +299,7 @@ namespace Project_Malawi_Resto.Models
                         while (rd.Read())
                         { 
                             Commande c = new Commande();
-                            c.IdCommande= Convert.ToInt32(rd["Id_Boisson"]);
+                            c.IdCommande = Convert.ToInt32(rd["Id_Commande"]);
                             c.DateCommande = rd["Date_Commande"].ToString();
                             c.MontantTotal = Convert.ToDecimal(rd["Montant_Total"]);
                             c.Statut = rd["Statut"] != DBNull.Value ? rd["Statut"].ToString() : null;

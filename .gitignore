@@ -28,6 +28,11 @@ node_modules/
 dist/
 .vite/
 coverage/
+*.tsbuildinfo
+/wwwroot/client/
+/wwwroot/staff/
+/wwwroot/assets/
+/wwwroot/logo-malawi.jpg
 
 # Environment / secrets
 .env

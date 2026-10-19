@@ -11,13 +11,25 @@ Get-Content -Raw .\Database\001_create_schema.sql | mysql -u root -p
 Get-Content -Raw .\Database\002_seed_roles.sql | mysql -u root -p
 ```
 
-Saisissez le mot de passe MySQL lorsque le client le demande. Le premier script utilise `CREATE DATABASE/TABLE IF NOT EXISTS` et ne supprime aucune table. Il ne met toutefois pas à niveau une table existante dont la structure diffère. Pour une base de développement existante, sauvegardez-la avant toute modification et vérifiez son schéma séparément.
+Saisissez le mot de passe MySQL lorsque le client le demande. Le script `001` crée le schéma actuel, avec une table `Produit` et un champ `Type_Produit` (`Plat` ou `Boisson`). Le script `001` ne met pas à niveau une ancienne table existante.
+
+Pour une base existante créée avec l'ancienne version de `001_create_schema.sql` et qui possède encore les tables `Plat` et `Boisson`, faites d'abord une sauvegarde complète, puis appliquez une seule fois `Database/003_merge_products.sql`. Cette migration conserve les produits et leurs lignes de commande, fusionne les deux tables dans `Produit`, puis supprime les anciennes tables. Ne l'exécutez pas sur une base neuve et ne lancez pas le nouveau script `001` sur l'ancienne base avant la migration. Si le schéma a été modifié manuellement, adaptez et validez la migration sur une copie de la base avant de l'utiliser.
 
 Contrôlez ensuite la création :
 
 ```powershell
 mysql -u root -p -D bd_malawi_resto -e "SHOW TABLES;"
 ```
+
+## Fonctionnalités actuellement présentes
+
+- `GET /api/health` vérifie que l'API est démarrée.
+- `GET /api/menu` retourne les produits des catégories actives, avec leur catégorie, leur type, leur prix et leur disponibilité.
+- `GET /api/products` et les autres routes `/api/products` gèrent dans la même ressource les plats et les boissons. Les commandes référencent les produits par `Id_Produit`.
+- Le frontend React fournit deux interfaces indépendantes sur la même API : `/client/` pour les visiteurs et clients (menu, inscription, panier, commandes, factures et profil) ; `/staff/` pour la connexion et les outils du personnel. En développement avec Vite, les adresses sont `http://localhost:5173/client/` et `http://localhost:5173/staff/`. En production, elles sont servies par ASP.NET Core sur le même domaine.
+- Les contrôleurs d'API couvrent également l'authentification, la gestion des utilisateurs, rôles, clients, catégories, produits, commandes, paiements, factures, livraisons, rapports, remboursements et historique. Les permissions, routes et règles métier sont détaillées dans `Controllers/README.md`.
+
+La configuration MySQL n'est pas disponible sur toutes les machines : l'exécution réelle et les tests de bout en bout exigent un serveur MySQL avec les scripts ci-dessous appliqués. L'intégration des fournisseurs MonCash/NatCash n'est pas configurée ; la création de paiement reste donc désactivée (HTTP 501), aucune commande ne peut être déclarée payée par ces routes et aucune facture automatique n'est émise après paiement.
 
 ## Connexion de l'application
 
@@ -32,8 +44,7 @@ Adaptez l'utilisateur et les paramètres à votre installation MySQL. N'utilisez
 
 ## Règles à respecter dans l'application
 
-- Les valeurs de `Utilisateur.mot_de_passe` doivent être des hashes produits par un algorithme de hachage de mots de passe, jamais des mots de passe en clair.
-- N'insérez pas de comptes par l'ancien CRUD `Utilisateur` avant d'y ajouter le hachage : il enregistre actuellement la valeur reçue telle quelle et certaines de ses requêtes utilisent des noms de colonnes différents.
+- Les nouvelles routes d'authentification hachent les mots de passe avec le `PasswordHasher` ASP.NET Core. L'ancien CRUD de la classe `Utilisateur` n'est pas utilisé par ces routes et ne doit pas servir à créer des comptes.
 - La commande doit contenir au moins une ligne. Vérifiez la disponibilité et calculez le montant à partir des prix enregistrés, dans une transaction SQL.
 - Un paiement n'est considéré réussi qu'après confirmation vérifiée de MonCash ou NatCash. Une référence de transaction ne constitue pas, à elle seule, une confirmation.
 - La livraison ne concerne que les commandes en mode `Livraison`. Ses seuls statuts sont `En cours` et `Livrée` ; elle ne peut pas être annulée.
@@ -42,4 +53,4 @@ Adaptez l'utilisateur et les paramètres à votre installation MySQL. N'utilisez
 
 ## Limites d'intégration actuelles
 
-Le dépôt contient des modèles C# antérieurs à ce schéma. Certains noms de colonnes et statuts qu'ils utilisent ne correspondent pas aux règles métier retenues. En particulier, les modèles de commande, de paiement et d'utilisateur doivent être adaptés avant d'appeler ces tables depuis les nouvelles API. La création de commande, la confirmation automatique de paiement, l'affectation des livraisons et le hachage des mots de passe ne sont pas encore intégrés. Ces scripts ne modifient pas les données existantes et ne doivent pas être considérés comme une migration d'une base déjà utilisée.
+Les modèles `Plat` et `Boisson` héritent maintenant du modèle commun `Produit` et leurs méthodes de persistance utilisent la table `Produit`. La création des commandes, le hachage des mots de passe et l'affectation des livraisons sont implémentés dans les API, mais doivent encore être testés avec une base MySQL réelle. La confirmation des paiements MonCash/NatCash et l'émission automatique des factures restent bloquées tant que l'intégration fournisseur n'est pas configurée.

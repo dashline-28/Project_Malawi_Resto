@@ -1,6 +1,6 @@
 CREATE DATABASE IF NOT EXISTS bd_malawi_resto
     CHARACTER SET utf8mb4
-    COLLATE utf8mb4_0900_ai_ci;
+    ;
 
 USE bd_malawi_resto;
 
@@ -55,40 +55,25 @@ CREATE TABLE IF NOT EXISTS Categorie (
     UNIQUE KEY UQ_Categorie_Nom (Nom_Categorie)
 ) ENGINE = InnoDB;
 
-CREATE TABLE IF NOT EXISTS Plat (
-    IdPlat INT UNSIGNED NOT NULL AUTO_INCREMENT,
-    NomPlat VARCHAR(150) NOT NULL,
+CREATE TABLE IF NOT EXISTS Produit (
+    Id_Produit INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    Nom VARCHAR(150) NOT NULL,
     Quantite INT UNSIGNED NOT NULL DEFAULT 0,
     `Description` TEXT NULL,
     Prix DECIMAL(12, 2) NOT NULL,
     Categorie VARCHAR(100) NOT NULL,
+    Type_Produit VARCHAR(20) NOT NULL,
     Disponibilite BOOLEAN NOT NULL DEFAULT TRUE,
-    PRIMARY KEY (IdPlat),
-    KEY IX_Plat_Categorie (Categorie),
-    KEY IX_Plat_Disponibilite (Disponibilite),
-    CONSTRAINT FK_Plat_Categorie
+    PRIMARY KEY (Id_Produit),
+    KEY IX_Produit_Categorie (Categorie),
+    KEY IX_Produit_Disponibilite (Disponibilite),
+    KEY IX_Produit_Type (Type_Produit),
+    CONSTRAINT FK_Produit_Categorie
         FOREIGN KEY (Categorie) REFERENCES Categorie (Nom_Categorie)
         ON UPDATE CASCADE
         ON DELETE RESTRICT,
-    CONSTRAINT CK_Plat_Prix CHECK (Prix >= 0)
-) ENGINE = InnoDB;
-
-CREATE TABLE IF NOT EXISTS Boisson (
-    Id_Boisson INT UNSIGNED NOT NULL AUTO_INCREMENT,
-    Nom_Boisson VARCHAR(150) NOT NULL,
-    Quantite INT UNSIGNED NOT NULL DEFAULT 0,
-    `Description` TEXT NULL,
-    Prix DECIMAL(12, 2) NOT NULL,
-    Disponibilite BOOLEAN NOT NULL DEFAULT TRUE,
-    Type_Boisson VARCHAR(100) NOT NULL,
-    PRIMARY KEY (Id_Boisson),
-    KEY IX_Boisson_Categorie (Type_Boisson),
-    KEY IX_Boisson_Disponibilite (Disponibilite),
-    CONSTRAINT FK_Boisson_Categorie
-        FOREIGN KEY (Type_Boisson) REFERENCES Categorie (Nom_Categorie)
-        ON UPDATE CASCADE
-        ON DELETE RESTRICT,
-    CONSTRAINT CK_Boisson_Prix CHECK (Prix >= 0)
+    CONSTRAINT CK_Produit_Prix CHECK (Prix >= 0),
+    CONSTRAINT CK_Produit_Type CHECK (Type_Produit IN ('Plat', 'Boisson'))
 ) ENGINE = InnoDB;
 
 CREATE TABLE IF NOT EXISTS Commande (
@@ -136,29 +121,22 @@ CREATE TABLE IF NOT EXISTS Commande (
 CREATE TABLE IF NOT EXISTS Detail_Commande (
     Id_Detail INT UNSIGNED NOT NULL AUTO_INCREMENT,
     Id_Commande INT UNSIGNED NOT NULL,
-    IdPlat INT UNSIGNED NULL,
-    Id_Boisson INT UNSIGNED NULL,
+    Id_Produit INT UNSIGNED NOT NULL,
     Quantite INT UNSIGNED NOT NULL,
     Prix_Unitaire DECIMAL(12, 2) NOT NULL,
     Montant_Ligne DECIMAL(12, 2)
         GENERATED ALWAYS AS (Quantite * Prix_Unitaire) STORED,
     PRIMARY KEY (Id_Detail),
     KEY IX_Detail_Commande (Id_Commande),
-    KEY IX_Detail_Plat (IdPlat),
-    KEY IX_Detail_Boisson (Id_Boisson),
+    KEY IX_Detail_Produit (Id_Produit),
     CONSTRAINT FK_Detail_Commande_Commande
         FOREIGN KEY (Id_Commande) REFERENCES Commande (Id_Commande)
         ON UPDATE CASCADE
         ON DELETE RESTRICT,
-    CONSTRAINT FK_Detail_Commande_Plat
-        FOREIGN KEY (IdPlat) REFERENCES Plat (IdPlat)
+    CONSTRAINT FK_Detail_Commande_Produit
+        FOREIGN KEY (Id_Produit) REFERENCES Produit (Id_Produit)
         ON UPDATE CASCADE
         ON DELETE RESTRICT,
-    CONSTRAINT FK_Detail_Commande_Boisson
-        FOREIGN KEY (Id_Boisson) REFERENCES Boisson (Id_Boisson)
-        ON UPDATE CASCADE
-        ON DELETE RESTRICT,
-    CONSTRAINT CK_Detail_Un_Produit CHECK ((IdPlat IS NULL) <> (Id_Boisson IS NULL)),
     CONSTRAINT CK_Detail_Quantite CHECK (Quantite > 0),
     CONSTRAINT CK_Detail_Prix CHECK (Prix_Unitaire >= 0)
 ) ENGINE = InnoDB;
